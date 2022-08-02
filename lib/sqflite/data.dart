@@ -4,14 +4,16 @@ import 'package:intl/intl.dart';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 
-class CreateDataBaseController extends GetxController {
+class CreateDataBaseControllerpublic extends GetxController {
+
+
   changedatatime(value){
     datetime=value;
     getDatabase(database);
     update();
   }
-  CreateDataBaseController(){
-    getDatabase(database);
+  CreateDataBaseControllerpublic(){
+    createDatabase();
   }
   Database? database;
   String? path;
@@ -26,7 +28,8 @@ class CreateDataBaseController extends GetxController {
       // When creating the db, create the table
       debugPrint('DataBase is created');
       await db.execute(
-          'CREATE TABLE Tasks (id INTEGER PRIMARY KEY, title TEXT, date TEXT, start TEXT,end TEXT,remind TEXT,repeat TEXT,color INTEGER ,state INTEGER)');
+          'CREATE TABLE Tasks (id INTEGER PRIMARY KEY, title TEXT, date TEXT, start TEXT,end TEXT,remind TEXT,repeat TEXT,color INTEGER ,state INTEGER,favorite INTEGER)');
+
     }, onOpen: (Database db) {
       debugPrint('DataBase is opened');
       database=db;
@@ -45,28 +48,36 @@ class CreateDataBaseController extends GetxController {
   required String repeat,
   required int color,
   required int state,
+  required int favorite,
 })async{
 
     // Insert some records in a transaction
     await  database!.transaction((txn) async {
       var num = await txn.rawInsert(
-          'INSERT INTO Tasks(title,date, start,end,remind,repeat,color,state) VALUES("$title","$date", "$start","$end","$remind","$repeat",$color,$state)');
+          'INSERT INTO Tasks(title,date, start,end,remind,repeat,color,state,favorite) VALUES("$title","$date", "$start","$end","$remind","$repeat",$color,$state,$favorite)');
       print('inserted1: $num');
       getDatabase(database);
     });
 
   }
 
-var datetime=DateFormat('yyyy-MM-dd ').format(DateTime.now());
+
+String datetime=DateFormat('yyyy-MM-dd').format(DateTime.now());
   List<Map> list=[];
   List<Map>listbydate=[];
+  List<Map>listbyfav=[];
+  List<Map>listbycomplete=[];
+  List<Map>listbyuncomplete=[];
   void getDatabase(database)async{
     // Get the records
   list=  await database!.rawQuery('SELECT * FROM Tasks');
     // print(list);
-listbydate=await database!.query('Tasks', where: '"date" = ?', whereArgs: [datetime]);
+// listbydate=await database!.query('Tasks', where: '"date" = ?', whereArgs: [datetime]);
+listbyfav=await database!.query('Tasks', where: '"favorite" = ?', whereArgs: [1]);
+    listbycomplete=await database!.query('Tasks', where: '"state" = ?', whereArgs: [1]);
+    listbyuncomplete=await database!.query('Tasks', where: '"state" = ?', whereArgs: [0]);
 print('------------------------');
-print('ahmed'+listbydate.toString());
+print('ahmed'+listbydate.toString()+datetime);
   print('------------------------');
 
 update();
@@ -83,6 +94,21 @@ update();
     // Update some record
     database!.rawUpdate('UPDATE tasks SET state = ? WHERE id = ?',
         [state, id]);
+    print('updated: ');
+    getDatabase(database);
+
+  }
+
+
+
+  void updateDatabasefavorite({
+  required int id,
+  required int favorite,
+})async{
+
+    // Update some record
+    database!.rawUpdate('UPDATE tasks SET favorite = ? WHERE id = ?',
+        [favorite, id]);
     print('updated: ');
     getDatabase(database);
 
@@ -117,5 +143,7 @@ update();
     }
     update();
   }
+
+
 
 }

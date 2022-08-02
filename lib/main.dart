@@ -1,80 +1,63 @@
-import 'dart:isolate';
 
 import 'package:android_alarm_manager_plus/android_alarm_manager_plus.dart';
 import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:just_audio/just_audio.dart';
-import 'package:scheduled_timer/scheduled_timer.dart';
-import 'package:todo_app/screens/home_screen.dart';
-import 'package:todo_app/services/Notifcation.dart';
-import 'package:todo_app/services/testing.dart';
+import 'package:get_storage/get_storage.dart';
+import 'package:todo_app/screens/PublicScreens/home_screen.dart';
+
+
 import 'package:todo_app/sqflite/data.dart';
 
-import 'const.dart';
-final CreateDataBaseController d=Get.put(CreateDataBaseController());
- playaudio( ) async {
-
-  await player.pause();
-
-  await player.setAudioSource(
-    ConcatenatingAudioSource(
-      // Start loading next item just before reaching it.
-      useLazyPreparation: true, // default
-      // Customise the shuffle algorithm.
-      shuffleOrder: DefaultShuffleOrder(), // default
-      // Specify the items in the playlist.
-      children: [
-        AudioSource.uri(Uri.parse("https://s3.amazonaws.com/scifri-episodes/scifri20181123-episode.mp3")),
-      ],
-    ),
-    // Playback will be prepared to start from track1.mp3
-    initialIndex: 0, // default
-    // Playback will be prepared to start from position zero.
-    initialPosition: Duration.zero, // default
-  );
-
-  await player.seekToNext();
-  await player.seekToPrevious();
-// Jump to the beginning of track3.mp3.
-  await player.seek(Duration(milliseconds: 0), index: 0);
-
-  player.play();
-}
-
- void printHello() {
-final DateTime now = DateTime.now();
-final int isolateId = Isolate.current.hashCode;
-print("[$now] Hello, world! isolate=${isolateId} function='$printHello'");
-playaudio();
-}
-final GlobalKey<NavigatorState> navigatorKey = new GlobalKey<NavigatorState>();
+import 'screens/MainScreen.dart';
+import 'screens/PublicScreens/myfirstScreen.dart';
+import 'sqflite/private_data.dart';
+final CreateDataBaseControllerpublic d=Get.put(CreateDataBaseControllerpublic());
+final CreateDataBaseControllerprivate p=Get.put(CreateDataBaseControllerprivate());
 
 void main() async{
-  d.createDatabase();
+   d.createDatabase();
+   p.createDatabase();
+
   AwesomeNotifications().initialize(
-    'resource://drawable/res_notification_app_icon',
+     'resource://drawable/logo',
+
     [
       NotificationChannel(
+      icon:  'resource://drawable/logo',
+
         channelKey: 'basic_channel',
         channelName: 'Basic Notifications',
-        defaultColor: Colors.teal,
         importance: NotificationImportance.High,
-        channelShowBadge: true, channelDescription: 'bl7a for programing',
+        channelShowBadge: true,
+        channelDescription: '',
+        ledColor: Colors.white,
+        defaultColor: Colors.teal,
+
       ),
+
       NotificationChannel(
+        icon:  'resource://drawable/logo',
+
         channelKey: 'scheduled_channel',
-        channelName: 'Scheduled Notifications',
+        channelName: 'Basic Notifications',
         defaultColor: Colors.teal,
-        locked: true,
+        ledColor: Colors.white,
+
         importance: NotificationImportance.High,
-        soundSource: 'resource://raw/res_custom_notification', channelDescription: 'company mostafa for stolen',
+        channelShowBadge: true,
+        channelDescription: '',
+
+
+
+
       ),
+
     ],
   );
-  WidgetsFlutterBinding.ensureInitialized();
-  await AndroidAlarmManager.initialize();
 
+  WidgetsFlutterBinding.ensureInitialized();
+   await GetStorage.init();
   runApp( MyApp());
 
 
@@ -87,13 +70,12 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GetMaterialApp(
-      navigatorKey: navigatorKey,
       debugShowCheckedModeBanner: false,
-      title: 'Flutter Demo',
+      title: 'Todo App',
       theme: ThemeData(
         primarySwatch: Colors.deepOrange,
       ),
-      home: HomeScreen(),
+      home: BoardingScreen(),
     );
   }
 }

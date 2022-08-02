@@ -1,4 +1,5 @@
 import 'package:awesome_notifications/awesome_notifications.dart';
+import 'package:get/get.dart';
 import 'package:todo_app/services/Utlits.dart';
 
 Future<void> createPlantFoodNotification() async {
@@ -11,12 +12,21 @@ Future<void> createPlantFoodNotification() async {
       body: 'Florist at 123 Main St. has 2 in stock',
       bigPicture: 'asset://assets/notification_map.png',
       notificationLayout: NotificationLayout.BigPicture,
+
     ),
+      actionButtons: [
+        NotificationActionButton(
+          key: "open",
+          label: "Open File",
+        ),
+
+      ]
+
   );
 }
 
 Future<void> createWaterReminderNotification({
-  required int weak,
+  required bool repeats,
   required int timeOfDayhour,
   required int timeOfDayminute,
   required int day,
@@ -26,19 +36,25 @@ Future<void> createWaterReminderNotification({
   required String note,
 }) async {
   await AwesomeNotifications().createNotification(
+
     content: NotificationContent(
+      displayOnBackground: true,
       id: createUniqueId(),
       channelKey: 'scheduled_channel',
       title: title,
       body: note,
+
       notificationLayout: NotificationLayout.Default,
     ),
+
     actionButtons: [
       NotificationActionButton(
-        key: 'MARK_DONE',
-        label: 'Mark Done',
+        key: "open1",
+        label: "Go to Task",
       ),
+
     ],
+
     schedule: NotificationCalendar(
       day: day,
       month: month,
@@ -48,10 +64,23 @@ Future<void> createWaterReminderNotification({
       second: 0,
       millisecond: 0,
       repeats: true,
+
+
+
     ),
+
+
   );
 }
 
 Future<void> cancelScheduledNotifications() async {
   await AwesomeNotifications().cancelAllSchedules();
+}
+Future<void> cancelScheduledNotificationsbyid(id) async {
+  await AwesomeNotifications().cancelSchedule(id);
+}
+Future<void> showScheduledNotificationsbyid() async {
+  await AwesomeNotifications().listScheduledNotifications(
+
+  );
 }

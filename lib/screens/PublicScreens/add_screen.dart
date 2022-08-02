@@ -4,16 +4,14 @@ import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:todo_app/custom_text_form_field.dart';
 import 'package:todo_app/screens/Controller/Color_Controller.dart';
-import 'package:todo_app/screens/home_screen.dart';
-import 'package:todo_app/services/Utlits.dart';
 import 'package:todo_app/services/testing.dart';
+import 'package:todo_app/sqflite/data.dart';
 
-import '../sqflite/data.dart';
 
 class AddScreen extends StatelessWidget {
   AddScreen({Key? key}) : super(key: key);
 
-  final CreateDataBaseController d = Get.put(CreateDataBaseController());
+  final CreateDataBaseControllerpublic d = Get.put(CreateDataBaseControllerpublic());
   final Color_Color_Controller col = Get.put(Color_Color_Controller());
   final _formKey = GlobalKey<FormState>();
   final titleController = TextEditingController();
@@ -24,15 +22,15 @@ class AddScreen extends StatelessWidget {
   final repeatController = TextEditingController();
   List<String> repeatitem = [
     'Daily',
-    'weakly',
+    'None',
   ];
   List<String> remindtems = [
+    'none',
     '10 minute before',
     '30 minute before',
     '1 hour before',
     '1 day before',
   ];
-  String myvalue = 'blue';
 
   showdate(context) async {
     DateTime date = DateTime(1900);
@@ -46,8 +44,7 @@ class AddScreen extends StatelessWidget {
     String formattedDate = DateFormat('yyyy-MM-dd').format(date);
 
     dateController.text = formattedDate;
-    var x = Duration(days: 7);
-    print('my date' + '${dateController.toString() + x.toString()}');
+    print('my date' + '${dateController.toString()}' );
   }
 
   showtimestart(context) async {
@@ -73,12 +70,13 @@ class AddScreen extends StatelessWidget {
     endController.text = date!.format(context);
   }
 
-  String dropdownValue = '10 minute';
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(),
+      appBar: AppBar(
+        backgroundColor: Colors.teal,
+      ),
       body: Form(
         key: _formKey,
         child: SingleChildScrollView(
@@ -239,63 +237,6 @@ class AddScreen extends StatelessWidget {
                 const SizedBox(
                   height: 10,
                 ),
-                const Text('Repeat'),
-                const SizedBox(
-                  height: 10,
-                ),
-                DropdownButtonFormField2(
-                  decoration: InputDecoration(
-                    //Add isDense true and zero Padding.
-                    //Add Horizontal padding using buttonPadding and Vertical padding by increasing buttonHeight instead of add Padding here so that The whole TextField Button become clickable, and also the dropdown menu open under The whole TextField Button.
-                    isDense: true,
-                    contentPadding: EdgeInsets.zero,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(15),
-                    ),
-                    //Add more decoration as you want here
-                    //Add label If you want but add hint outside the decoration to be aligned in the button perfectly.
-                  ),
-                  isExpanded: true,
-                  hint: const Text(
-                    'Select Your Repeat',
-                    style: TextStyle(fontSize: 14),
-                  ),
-                  icon: const Icon(
-                    Icons.arrow_drop_down,
-                    color: Colors.black45,
-                  ),
-                  iconSize: 30,
-                  buttonHeight: 50,
-                  buttonPadding: const EdgeInsets.only(left: 20, right: 10),
-                  dropdownDecoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(15),
-                  ),
-                  items: repeatitem
-                      .map((item) => DropdownMenuItem<String>(
-                            value: item,
-                            child: Text(
-                              item,
-                              style: const TextStyle(
-                                fontSize: 14,
-                              ),
-                            ),
-                          ))
-                      .toList(),
-                  validator: (value) {
-                    if (value == null) {
-                      return 'Please select Repeat.';
-                    }
-                  },
-                  onChanged: (value) {
-                    repeatController.text = value.toString();
-                    print(repeatController.text);
-                    //Do something when changing the item if you want.
-                  },
-                  onSaved: (value) {},
-                ),
-                const SizedBox(
-                  height: 10,
-                ),
                 const Text('Color'),
                 GetBuilder<Color_Color_Controller>(
                   builder: (controller) {
@@ -314,6 +255,7 @@ class AddScreen extends StatelessWidget {
                               },
                               child: CircleAvatar(
                                 backgroundColor: controller.backColor[index],
+                                child:(controller.mycolorindex==index)?Icon(Icons.done,color:Colors.black,):null,
                               ),
                             ),
                           );
@@ -332,7 +274,7 @@ class AddScreen extends StatelessWidget {
                       shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(20)),
                       minWidth: MediaQuery.of(context).size.width,
-                      color: Colors.deepOrange,
+                      color: Colors.teal,
                       child: const Text('Create Task'),
                       onPressed: () async {
                         if (_formKey.currentState!.validate()) {
@@ -344,37 +286,84 @@ class AddScreen extends StatelessWidget {
                               remind: remindController.text,
                               repeat: repeatController.text,
                               color: col.mycolorindex,
-                              state: 0);
+                              state: 0,
+                              favorite: 0,
+                          );
+                        //   '10 minute before',
+                        // '30 minute before',
+                        // '1 hour before',
+                        // '1 day before',
+                          bool repeats=false;
+                          var myTime;
+                          var time = DateFormat.jm().parse(startController.text);
+                          var myTimeend;
+                          var timeend = DateFormat.jm().parse(endController.text);
 
-                          // NotificationWeekAndTime? pickedSchedule =
-                          //     await pickSchedule(context);
-                          //
-                          // if (pickedSchedule != null) {
-                          //   createWaterReminderNotification(
-                          //     timeOfDayhour: int.parse(myTime.toString().split(':')[0]),
-                          //     timeOfDayminute: int.parse(myTime.toString().split(':')[2]),
-                          //     day: int.parse(mydate.toString().split('-')[4]),
-                          //     month: int.parse(mydate.toString().split('-')[2]),
-                          //     year: int.parse(mydate.toString().split('-')[0]),
-                          //     title: titleController.text,
-                          //     note: titleController.text,
-                          //   );
-                          // }
-                          await pickSchedule(context);
+                          if(remindController.text=='10 minute before'){
+                            myTime = DateFormat('HH:mm').format(time.subtract(Duration(minutes: 10)));
+
+                          }else if(remindController.text=='30 minute before'){
+                            myTime = DateFormat('HH:mm').format(time.subtract(Duration(minutes: 30)));
+
+                          }else if(remindController.text=='1 hour before'){
+                            myTime = DateFormat('HH:mm').format(time.subtract(Duration(hours: 1)));
+
+                          }else if(remindController.text=='1 day before'){
+                            myTime = DateFormat('HH:mm').format(time.subtract(Duration(days: 1)));
+
+                          }else{
+                            myTime = DateFormat('HH:mm').format(time);
+
+                          }
+
+                          if(remindController.text=='10 minute before'){
+                            myTimeend = DateFormat('HH:mm').format(timeend.subtract(Duration(minutes: 10)));
+
+                          }else if(remindController.text=='30 minute before'){
+                            myTimeend = DateFormat('HH:mm').format(timeend.subtract(Duration(minutes: 30)));
+
+                          }else if(remindController.text=='1 hour before'){
+                            myTimeend = DateFormat('HH:mm').format(timeend.subtract(Duration(hours: 1)));
+
+                          }else if(remindController.text=='1 day before'){
+                            myTimeend = DateFormat('HH:mm').format(timeend.subtract(Duration(days: 1)));
+
+                          }else{
+                            myTimeend = DateFormat('HH:mm').format(timeend);
+
+                          }
+
+
+
+                          print(repeats);
+                          int year=int.parse(dateController.text.split('-')[0]);
+                          int month=int.parse(dateController.text.split('-')[1]);
+                          int day=int.parse(dateController.text.split('-')[2]);
 
                             createWaterReminderNotification(
-                              weak: 11,
-                              timeOfDayhour: 19,
-                              timeOfDayminute:59,
-                              day: 25,
-                              month: 7,
-                              year: 2022,
+                              timeOfDayhour: int.parse(myTime.toString().split(':')[0]),
+                              timeOfDayminute: int.parse(myTime.toString().split(':')[1]),
+                              day: day,
+                              month: month,
+                              year: year,
                               title: titleController.text,
-                              note: titleController.text,
+                              note: 'Start Task',
+                              repeats: true,
                             );
+                          createWaterReminderNotification(
+                            timeOfDayhour: int.parse(myTimeend.toString().split(':')[0]),
+                            timeOfDayminute: int.parse(myTimeend.toString().split(':')[1]),
+                            day: day,
+                            month: month,
+                            year: year,
+                            title: titleController.text,
+                            note: 'End Task',
+                            repeats: true,
+                          );
 
 
-                          Get.offAll(() => HomeScreen());
+
+                          Get.back();
                         }
                       }),
                 )
